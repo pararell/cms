@@ -26,9 +26,28 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
+            "externalDependencies": [
+              "pg",
+              "pg-query-stream",
+              "mysql",
+              "mysql2",
+              "better-sqlite3",
+              "oracledb",
+              "tedious",
+              "bcrypt",
+              "sqlite3",
+              "knex",
+              "jsonwebtoken",
+              "express-session",
+              "connect-session-knex",
+              "nodemailer",
+              "dotenv",
+              "body-parser",
+              "cookie-parser",
+              "cors",
+              "compression"
             ],
+            "styles": ["src/styles.scss"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
@@ -73,22 +92,6 @@
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.scss"
-            ]
-          }
         }
       }
     }
