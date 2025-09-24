@@ -34,7 +34,6 @@ const getLang = (req: CustomRequest): 'en' | 'sk' => {
   return acceptIsSk ? 'sk' : 'en';
 };
 
-console.log(process.env, 'process.env')
 
 export const setServerBE = (app) => {
   app.set('trust proxy', true);

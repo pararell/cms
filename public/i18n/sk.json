@@ -1,0 +1,16 @@
+{
+  "home": "Domov",
+  "about": "O mne",
+  "contact": "Kontakt",
+  "search": "Hľadať",
+  "blog_title": "Blog ",
+  "blog_subtitle": " ",
+  "subject": "Subjekt",
+  "note": "Poznámka",
+  "send": "Poslať",
+  "about_title": "O mne",
+  "about_description": "Info o mne",
+  "categories": "Kategorie",
+  "message_success": "Sprava poslana",
+  "message_error": "Skuste este raz"
+}

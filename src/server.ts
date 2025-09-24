@@ -4,9 +4,12 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { join } from 'node:path';
 import { setServerBE } from './server-BE';
+import { MODE, ThemeMode } from './app/mode.token';
+import { LANG } from './app/lang.token';
+import { signal } from '@angular/core';
 
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -15,6 +18,21 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 setServerBE(app);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.post('/lang-switch', (req: Request, res: Response) => {
+  const lang = req.body.lang;
+  res.cookie('lang', lang, { path: '/' });
+  res.redirect(303, req.get('referer') || '/');
+});
+
+app.post('/mode-switch', (req: Request, res: Response) => {
+  const nextMode: ThemeMode = req.body.mode === 'dark' ? 'light' : 'dark';
+  res.cookie('mode', nextMode, { path: '/' });
+  res.redirect(303, req.get('referer') || '/');
+});
 
 /**
  * Serve static files from /browser
@@ -31,8 +49,17 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use((req, res, next) => {
+  const coerceMode = (value?: string): ThemeMode => (value === 'dark' ? 'dark' : 'light');
+  const mode = coerceMode(req.cookies?.mode);
+  const lang = req.cookies?.lang || 'en';
+
   angularApp
-    .handle(req)
+    .handle(req, {
+        providers: [
+          { provide: MODE, useValue: signal<ThemeMode>(mode) },
+          { provide: LANG, useValue: signal<string>(lang) },
+        ]
+      })
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
