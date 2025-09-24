@@ -20,8 +20,6 @@ const angularApp = new AngularNodeAppEngine();
 
 setServerBE(app);
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 app.post('/lang-switch', (req: Request, res: Response) => {
   const lang = req.body.lang;

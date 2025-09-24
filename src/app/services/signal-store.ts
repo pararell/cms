@@ -21,6 +21,7 @@ export class SignalStore {
 
   pages = signal<Page[]>([]);
   blogs = signal<any[]>([]);
+  user = signal<any>(null);
 
   getPages = () => {
     this.apiService.getPages().subscribe((response: any) => {
@@ -31,6 +32,12 @@ export class SignalStore {
   getBlogs = () => {
     this.apiService.getBlogs().subscribe((response: any) => {
       this.blogs.set(response);
+    });
+  };
+
+  getUser = () => {
+    this.apiService.getUser().subscribe((response: any) => {
+      this.user.set(response);
     });
   };
 }

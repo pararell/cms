@@ -37,6 +37,8 @@ const getLang = (req: CustomRequest): 'en' | 'sk' => {
 
 export const setServerBE = (app) => {
   app.set('trust proxy', true);
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json());
 
 
   app.use(
@@ -61,8 +63,45 @@ export const setServerBE = (app) => {
 
   app.use(cookieParser());
 
+  // Normalize auth token lookup for both session cookies and Bearer headers (dev server fallback)
+  const extractToken = (req: CustomRequest): string | undefined => {
+    const sessionToken = typeof req.session?.token === 'string' ? req.session.token.trim() : '';
+    if (sessionToken) {
+      return sessionToken;
+    }
+
+    const cookieToken = typeof req.cookies?.token === 'string' ? req.cookies.token.trim() : '';
+    if (cookieToken) {
+      if (req.session) {
+        req.session.token = cookieToken;
+      }
+      return cookieToken;
+    }
+
+    const authHeader = req.headers['authorization'];
+    const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
+    if (typeof headerValue !== 'string') {
+      return undefined;
+    }
+
+    const trimmed = headerValue.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    const normalized = trimmed.toLowerCase().startsWith('bearer ')
+      ? trimmed.slice(7).trim()
+      : trimmed;
+
+    if (normalized && req.session) {
+      req.session.token = normalized;
+    }
+
+    return normalized || undefined;
+  };
+
   const authenticateUser = (req, res, next) => {
-    const userToken = req.session.token || req.headers.authorization;
+    const userToken = extractToken(req);
     if (!userToken) {
       res.status(401).json({ message: `Authentication error` });
       return;
@@ -82,7 +121,7 @@ export const setServerBE = (app) => {
   };
 
   const authenticateAdmin = (req, res, next) => {
-    const userToken = req.session.token || req.headers.authorization;
+    const userToken = extractToken(req);
     if (!userToken) {
       res.status(401).json({ message: `Authentication error` });
       return;
@@ -103,7 +142,11 @@ export const setServerBE = (app) => {
   };
 
   routes.get('/user', async (req: CustomRequest, res) => {
-    const userToken = req.session.token || req.headers.authorization;
+    const userToken = extractToken(req);
+    if (!userToken) {
+      res.end(JSON.stringify({}));
+      return;
+    }
     try {
       const userInfo = jwt.verify(userToken, process.env['TOKEN_KEY']);
       res.end(JSON.stringify(userInfo));
