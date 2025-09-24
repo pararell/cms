@@ -6,6 +6,7 @@ import { SignalStore } from './services/signal-store';
 import { MODE } from './mode.token';
 import { LANG } from './lang.token';
 import { PLATFORM_ID } from '@angular/core';
+import { TOKEN } from './user.token';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,7 @@ export class App {
   store = inject(SignalStore);
   mode = inject(MODE);
   lang = inject(LANG);
+  token = inject(TOKEN);
   private platformId = inject(PLATFORM_ID);
   private document = inject(DOCUMENT);
 

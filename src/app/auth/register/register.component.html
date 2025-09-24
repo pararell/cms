@@ -1,0 +1,66 @@
+<div class="container auth-container">
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <h1 class="header-title">User register</h1>
+
+    <div class="field">
+      <label class="label" for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        name="email"
+        placeholder="Email"
+        autocomplete="email"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <span class="validation">Enter a valid email.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="label" for="username">Username</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        name="username"
+        placeholder="Username"
+        autocomplete="username"
+      />
+      @if (form.controls.username.touched && form.controls.username.invalid) {
+        <span class="validation">Username must be at least 3 characters.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="label" for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        name="password"
+        placeholder="Password"
+        autocomplete="new-password"
+      />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <span class="validation">Password must be at least 6 characters.</span>
+      }
+    </div>
+
+    <button class="btn submit" type="submit" [disabled]="pending() || form.invalid">
+      @if (pending()) {
+        <span>Creating account…</span>
+      } @else {
+        <span>Submit</span>
+      }
+    </button>
+
+    @if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    @if (successMessage()) {
+      <p class="success" role="status">{{ successMessage() }}</p>
+    }
+  </form>
+</div>

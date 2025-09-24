@@ -18,7 +18,7 @@ const routes = Router();
 dotenv.config();
 
 
-interface CustomRequest extends Request {
+export interface CustomRequest extends Request {
   user?: { email: string };
   session?: { token?: string };
 }
@@ -37,6 +37,7 @@ const getLang = (req: CustomRequest): 'en' | 'sk' => {
 
 export const setServerBE = (app) => {
   app.set('trust proxy', true);
+
 
   app.use(
     session({
@@ -475,6 +476,7 @@ export const setServerBE = (app) => {
 
           user.token = token;
           req.session.token = token;
+          res.cookie('token', token, { path: '/' });
           res.end(JSON.stringify(user));
         } else {
           return res.status(400).json('No Match');

@@ -6,10 +6,11 @@ import {
 } from '@angular/ssr/node';
 import express, { Request, Response } from 'express';
 import { join } from 'node:path';
-import { setServerBE } from './server-BE';
+import { CustomRequest, setServerBE } from './server-BE';
 import { MODE, ThemeMode } from './app/mode.token';
 import { LANG } from './app/lang.token';
 import { signal } from '@angular/core';
+import { TOKEN } from './app/user.token';
 
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -48,16 +49,24 @@ app.use(
 /**
  * Handle all other requests by rendering the Angular application.
  */
-app.use((req, res, next) => {
+app.use((req: CustomRequest, res, next) => {
   const coerceMode = (value?: string): ThemeMode => (value === 'dark' ? 'dark' : 'light');
+  const coerceLang = (value?: string) => (value && value.trim() ? value : 'en');
+  const coerceToken = (value?: string) => (value && value.trim() ? value : '');
+
   const mode = coerceMode(req.cookies?.mode);
-  const lang = req.cookies?.lang || 'en';
+  const lang = coerceLang(req.cookies?.lang);
+  if (req.session?.token) {
+    res.cookie('token', req.session.token, { path: '/' });
+  }
+  const token = coerceToken(req.cookies?.token ?? req.session?.token);
 
   angularApp
     .handle(req, {
         providers: [
           { provide: MODE, useValue: signal<ThemeMode>(mode) },
           { provide: LANG, useValue: signal<string>(lang) },
+          { provide: TOKEN, useValue: signal<string>(token) },
         ]
       })
     .then((response) =>

@@ -1,0 +1,47 @@
+<div class="container auth-container">
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <h1 class="header-title">User login</h1>
+
+    <div class="field">
+      <label class="label" for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        name="email"
+        placeholder="Email"
+        autocomplete="email"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <span class="validation">Enter a valid email.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="label" for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        name="password"
+        placeholder="Password"
+        autocomplete="current-password"
+      />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <span class="validation">Password is required.</span>
+      }
+    </div>
+
+    <button class="btn submit" type="submit" [disabled]="pending() || form.invalid">
+      @if (pending()) {
+        <span>Signing in…</span>
+      } @else {
+        <span>Submit</span>
+      }
+    </button>
+
+    @if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+    }
+  </form>
+</div>

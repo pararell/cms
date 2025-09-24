@@ -1,4 +1,12 @@
-import { ApplicationConfig, inject, PLATFORM_ID, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection, signal } from '@angular/core';
+import {
+  ApplicationConfig,
+  ENVIRONMENT_INITIALIZER,
+  inject,
+  PLATFORM_ID,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+  signal,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -7,36 +15,53 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { MODE, ThemeMode } from './mode.token';
 import { LANG } from './lang.token';
 import { isPlatformBrowser } from '@angular/common';
+import { TOKEN } from './user.token';
 
+const readCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return match?.[1] ?? null;
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch()),
-    provideRouter(routes), provideClientHydration(withEventReplay()),
+    provideRouter(routes),
+    provideClientHydration(withEventReplay()),
+    { provide: MODE, useFactory: () => signal<ThemeMode>('light') },
+    { provide: LANG, useFactory: () => signal<string>('en') },
+    { provide: TOKEN, useFactory: () => signal<string>('') },
     {
-      provide: MODE,
+      provide: ENVIRONMENT_INITIALIZER,
+      multi: true,
       useFactory: () => {
         const platformId = inject(PLATFORM_ID);
-        const coerceMode = (value?: string): ThemeMode => (value === 'dark' ? 'dark' : 'light');
+        const mode = inject(MODE);
+        const lang = inject(LANG);
+        const token = inject(TOKEN);
 
-        if (isPlatformBrowser(platformId)) {
-          const cookieMatch = document.cookie.match(/(?:^|;\s*)mode=([^;]*)/);
-          return signal<ThemeMode>(coerceMode(cookieMatch?.[1]));
-        }
+        return () => {
+          if (!isPlatformBrowser(platformId)) {
+            return;
+          }
 
-        return signal<ThemeMode>('light');
+          const nextMode = readCookie('mode');
+          if (nextMode) {
+            mode.set(nextMode === 'dark' ? 'dark' : 'light');
+          }
+
+          const nextLang = readCookie('lang');
+          if (nextLang) {
+            lang.set(nextLang.trim() || 'en');
+          }
+
+          const nextToken = readCookie('token');
+          if (nextToken !== null) {
+            token.set(nextToken);
+          }
+        };
       },
     },
-    { provide: LANG, useFactory: () => {
-        const platformId = inject(PLATFORM_ID);
-        if (isPlatformBrowser(platformId)) {
-          const cookieMatch = document.cookie.match(/(?:^|;\s*)lang=([^;]*)/);
-          return signal<string>(cookieMatch?.[1]);
-        }
-        return signal<string>('en');
-      },
-    },
-  ]
+  ],
 };
