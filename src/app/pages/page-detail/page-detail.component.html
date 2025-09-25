@@ -1,0 +1,10 @@
+<section class="page-detail">
+  <p class="loading" *ngIf="loading()">Loading page…</p>
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <article class="content" *ngIf="renderedContent() as html">
+    <div class="page-content" [innerHTML]="html"></div>
+  </article>
+
+  <app-contact-form *ngIf="showContactForm()"></app-contact-form>
+</section>

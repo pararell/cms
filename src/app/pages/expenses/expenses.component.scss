@@ -1,0 +1,174 @@
+.expenses-wrap {
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding-bottom: 16px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px 16px;
+}
+
+.summary {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.expenses-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.expenses {
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px 16px;
+  gap: 6px;
+}
+
+.expense {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.expense:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.expense span {
+  font-size: 0.95rem;
+  color: inherit;
+}
+
+.expense.expense-titles {
+  font-weight: 600;
+  box-shadow: none;
+  cursor: default;
+}
+
+.expense.expense-titles span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expense select {
+  min-width: 160px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  padding: 4px 10px;
+}
+
+.loading,
+.empty,
+.feedback {
+  padding: 0 32px;
+  margin: 8px 0;
+}
+
+.feedback.error {
+  color: #d32f2f;
+}
+
+.feedback.success {
+  color: #2e7d32;
+}
+
+.modal-window {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-inside {
+  position: relative;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  width: min(520px, 100%);
+  max-height: 95vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.modal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.modal-form input {
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+}
+
+.btn.submit {
+  align-self: center;
+  min-width: 160px;
+}
+
+.delete-form {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.btn.delete {
+  background: #d32f2f;
+  color: #fff;
+}
+
+#search {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+#search input {
+  flex: 1;
+  border-radius: 24px;
+  border: 1px solid #b4b9ba;
+  padding: 8px 16px;
+}
+
+#search .btn {
+  min-width: 100px;
+}

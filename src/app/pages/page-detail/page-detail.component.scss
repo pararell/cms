@@ -1,0 +1,29 @@
+.page-detail {
+  padding: 40px 20px 80px;
+}
+
+.loading,
+.error {
+  text-align: center;
+  margin: 20px auto;
+}
+
+.error {
+  color: #d92b2b;
+}
+
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-content {
+  background: transparent;
+  color: inherit;
+}
+
+.page-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

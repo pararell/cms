@@ -10,7 +10,7 @@ import {
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideClientHydration, withEventReplay, withHttpTransferCacheOptions, withIncrementalHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { MODE, ThemeMode } from './mode.token';
 import { LANG } from './lang.token';
@@ -26,9 +26,18 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(),
+    ),
     provideRouter(routes),
-    provideClientHydration(withEventReplay()),
+    provideClientHydration(
+      withEventReplay(),
+      withIncrementalHydration(),
+      withHttpTransferCacheOptions({
+        includePostRequests: true, // to include POST
+        includeRequestsWithAuthHeaders: true, // to include with auth
+      })
+    ),
     { provide: MODE, useFactory: () => signal<ThemeMode>('light') },
     { provide: LANG, useFactory: () => signal<string>('en') },
     { provide: TOKEN, useFactory: () => signal<string>('') },

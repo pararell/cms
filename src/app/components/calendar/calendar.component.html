@@ -1,0 +1,35 @@
+<div class="calendars-wrap" *ngIf="calendars?.length">
+  @for (calendar of calendars; track calendar.year + '-' + calendar.month) {
+    <div class="calendar-month">
+      <h2 class="calendar-dates-month">
+        <strong>{{ calendar.monthLabel }}</strong>
+        <span class="calendar-year">{{ calendar.year }}</span>
+      </h2>
+
+      <div class="calendar-weekdays-title">
+        @for (weekday of weekdays; track weekday) {
+          <div class="calendar-weekday">{{ weekday }}</div>
+        }
+      </div>
+
+      <div class="calendar-days-wrap">
+        @for (placeholder of calendar.placeholders; track $index) {
+          <div class="calendar-day past"></div>
+        }
+
+        @for (day of calendar.days; track day.value) {
+          <button
+            type="button"
+            class="calendar-day"
+            [class.calendar-day--today]="day.today"
+            [class.calendar-day--with-note]="day.hasNote"
+            (click)="onSelect(day, calendar)"
+            [attr.aria-pressed]="day.hasNote ? 'true' : null"
+          >
+            <span class="day">{{ day.value }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

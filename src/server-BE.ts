@@ -26,6 +26,8 @@ export interface CustomRequest extends Request {
 const getLang = (req: CustomRequest): 'en' | 'sk' => {
   const cookieLang =
     req.cookies && typeof req.cookies.lang === 'string' ? req.cookies.lang : undefined;
+
+  console.log('Cookie lang:', cookieLang, 'headers', req.headers['accept-language']);
   if (cookieLang && ['en', 'sk'].includes(cookieLang)) {
     return cookieLang as 'en' | 'sk';
   }
@@ -39,6 +41,21 @@ export const setServerBE = (app) => {
   app.set('trust proxy', true);
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+
+
+  app.use((req, _res, next) => {
+    const headerValue = req.headers['x-forwarded-cookie'];
+    if (headerValue && !req.headers.cookie) {
+      const forwardedCookie = Array.isArray(headerValue) ? headerValue.join('; ') : headerValue;
+      const headers = req.headers as Record<string, unknown>;
+      headers['cookie'] = forwardedCookie;
+    }
+    if (req.headers['x-forwarded-cookie']) {
+      const headers = req.headers as Record<string, unknown>;
+      delete headers['x-forwarded-cookie'];
+    }
+    next();
+  });
 
 
   app.use(
@@ -303,6 +320,10 @@ export const setServerBE = (app) => {
         .where({ lang, slug })
         .orWhere({ lang, url: slug })
         .first();
+      console.log(lang, 'ddd')
+        if (!page) {
+        console.log('Fetched page:', page);
+        }
 
       if (page) {
         res.end(JSON.stringify(page));

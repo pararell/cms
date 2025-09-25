@@ -1,0 +1,182 @@
+<app-calendar [calendars]="calendars()" (selectDay)="openCalendarNote($event)"></app-calendar>
+
+<div class="notes-wrap">
+  <div class="top">
+    <h1>Notes</h1>
+    @if (user()?.email) {
+      <div class="notes-actions">
+        <button type="button" class="btn" (click)="openAddModal()">Add</button>
+        <button type="button" class="btn" (click)="openEditModal()">Edit</button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="feedback error">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="feedback success">{{ successMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="loading">Loading notes...</p>
+  } @else {
+    @if (notes().length) {
+      <div class="note note-titles">
+        <span>
+          Categories
+          <select
+            [value]="selectedCategory()"
+            (change)="onCategoryChange($event.target['value'])"
+          >
+            @for (category of categories(); track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </span>
+      </div>
+
+      <div class="notes">
+        @for (note of notes(); track note.id) {
+          <button
+            type="button"
+            class="note"
+            [style.color]="note.color || null"
+            (click)="selectNote(note)"
+            [disabled]="!user()?.email"
+          >
+            <span>{{ note.title }}</span>
+            <span>{{ note.date }}</span>
+            <span [innerHTML]="note.safeContent"></span>
+            <span>{{ note.categories }}</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <p class="empty">No notes found.</p>
+    }
+  }
+</div>
+
+@if (showAddModal()) {
+  <div class="modal-window" role="dialog" aria-modal="true">
+    <div class="modal-inside">
+      <button type="button" class="modal-close" aria-label="Close add note form" (click)="closeAddModal()">&times;</button>
+      <h2>Add note</h2>
+      <form [formGroup]="addForm" (ngSubmit)="submitNewNote()" class="modal-form">
+        <label>
+          <span>Title</span>
+          <input formControlName="title" type="text" required />
+        </label>
+        <label>
+          <span>Content</span>
+          <textarea formControlName="content" rows="6"></textarea>
+        </label>
+        <label>
+          <span>Categories</span>
+          <input formControlName="categories" type="text" placeholder="work,ideas" />
+        </label>
+        <label>
+          <span>Position</span>
+          <input formControlName="position" type="number" />
+        </label>
+        <label>
+          <span>Hidden</span>
+          <select formControlName="hidden">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label>
+          <span>Date</span>
+          <input formControlName="date" type="date" />
+        </label>
+
+        <button class="btn submit" type="submit" [disabled]="pending()">Save</button>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="modal-window" role="dialog" aria-modal="true">
+    <div class="modal-inside">
+      <button type="button" class="modal-close" aria-label="Close edit note form" (click)="closeEditModal()">&times;</button>
+      <h2>Edit note</h2>
+
+      @if (user()?.email) {
+        <form id="search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+          <input
+            type="search"
+            formControlName="edit"
+            autocomplete="off"
+            list="notesList"
+            placeholder="Search notes..."
+          />
+          @if (allNotes().length) {
+            <datalist id="notesList">
+              @for (note of allNotes(); track note.id) {
+                <option [value]="note.slug"></option>
+              }
+            </datalist>
+          }
+          <button class="btn" type="submit">Search</button>
+        </form>
+
+        <form [formGroup]="editForm" (ngSubmit)="submitUpdatedNote()" class="modal-form">
+          <label>
+            <span>Title</span>
+            <input formControlName="title" type="text" required />
+          </label>
+          <label>
+            <span>Content</span>
+            <textarea formControlName="content" rows="6"></textarea>
+          </label>
+          <label>
+            <span>Categories</span>
+            <input formControlName="categories" type="text" />
+          </label>
+          <label>
+            <span>Position</span>
+            <input formControlName="position" type="number" />
+          </label>
+          <label>
+            <span>Hidden</span>
+            <select formControlName="hidden">
+              <option value="false">false</option>
+              <option value="true">true</option>
+            </select>
+          </label>
+          <label>
+            <span>Date</span>
+            <input formControlName="date" type="date" />
+          </label>
+
+          <button class="btn submit" type="submit" [disabled]="pending()">Save changes</button>
+        </form>
+
+        <form (ngSubmit)="deleteNote()" class="delete-form">
+          <button class="btn delete" type="submit" [disabled]="deletePending()">Delete note</button>
+        </form>
+      }
+    </div>
+  </div>
+}
+
+@if (showCalendarNotesModal()) {
+  <div class="modal-window" role="dialog" aria-modal="true">
+    <div class="modal-inside">
+      <button type="button" class="modal-close" aria-label="Close calendar notes" (click)="closeCalendarNotesModal()">&times;</button>
+      <div class="notes">
+        @for (note of calendarNotes(); track note.id) {
+          <button type="button" class="note" [style.color]="note.color || null" (click)="selectNote(note)">
+            <span>{{ note.title }}</span>
+            <span>{{ note.date }}</span>
+            <span [innerHTML]="note.safeContent"></span>
+            <span>{{ note.categories }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

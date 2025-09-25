@@ -1,0 +1,167 @@
+<div class="expenses-wrap">
+  <div class="top">
+    <span class="summary">Summary: {{ summary() }} eur</span>
+
+    @if (user()?.email) {
+      <div class="expenses-actions">
+        <button type="button" class="btn" (click)="openAddModal()">Add</button>
+        <button type="button" class="btn" (click)="openEditModal()">Edit</button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="feedback error">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="feedback success">{{ successMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="loading">Loading expenses...</p>
+  } @else {
+    @if (expenses().length) {
+      <div class="expenses">
+        <div class="expense expense-titles">
+          <span>Title</span>
+          <span>Value - eur</span>
+          <span>
+            Categories
+            <select
+              [value]="selectedCategory()"
+              (change)="onCategoryChange($event.target['value'])"
+            >
+              @for (category of categories(); track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select>
+          </span>
+        </div>
+
+        @for (expense of expenses(); track expense.id) {
+          <button
+            type="button"
+            class="expense"
+            [style.color]="expense.color || null"
+            (click)="selectExpense(expense)"
+            [disabled]="!user()?.email"
+            [attr.aria-label]="'Edit expense ' + expense.title"
+          >
+            <span>{{ expense.title }}</span>
+            <span>{{ expense.displayValue }}</span>
+            <span>{{ expense.categories }}</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <p class="empty">No expenses found.</p>
+    }
+  }
+</div>
+
+@if (showAddModal()) {
+  <div class="modal-window" role="dialog" aria-modal="true">
+    <div class="modal-inside">
+      <button type="button" class="modal-close" (click)="closeAddModal()" aria-label="Close add expense form">&times;</button>
+      <h2>Add expense</h2>
+      <form [formGroup]="addForm" (ngSubmit)="submitNewExpense()" class="modal-form">
+        <label>
+          <span>Title</span>
+          <input formControlName="title" type="text" required />
+        </label>
+        <label>
+          <span>Value</span>
+          <input formControlName="value" type="number" step="0.01" required />
+        </label>
+        <label>
+          <span>Description</span>
+          <input formControlName="description" type="text" />
+        </label>
+        <label>
+          <span>Categories</span>
+          <input formControlName="categories" type="text" placeholder="family,food" />
+        </label>
+        <label>
+          <span>Repeat</span>
+          <input formControlName="repeat" type="text" />
+        </label>
+        <label>
+          <span>Currency</span>
+          <input formControlName="currency" type="text" />
+        </label>
+        <label>
+          <span>Last payment</span>
+          <input formControlName="lastPayment" type="date" />
+        </label>
+
+        <button class="btn submit" type="submit" [disabled]="pending()">Save</button>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="modal-window" role="dialog" aria-modal="true">
+    <div class="modal-inside">
+      <button type="button" class="modal-close" (click)="closeEditModal()" aria-label="Close edit expense form">&times;</button>
+      <h2>Edit expense</h2>
+
+      @if (user()?.email) {
+        <form id="search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+          <input
+            type="search"
+            formControlName="edit"
+            autocomplete="off"
+            list="expensesList"
+            placeholder="Search expenses..."
+          />
+          @if (allExpenses().length) {
+            <datalist id="expensesList">
+              @for (expense of allExpenses(); track expense.id) {
+                <option [value]="expense.slug"></option>
+              }
+            </datalist>
+          }
+          <button class="btn" type="submit">Search</button>
+        </form>
+
+        <form [formGroup]="editForm" (ngSubmit)="submitUpdatedExpense()" class="modal-form">
+          <label>
+            <span>Title</span>
+            <input formControlName="title" type="text" required />
+          </label>
+          <label>
+            <span>Value</span>
+            <input formControlName="value" type="number" step="0.01" required />
+          </label>
+          <label>
+            <span>Description</span>
+            <input formControlName="description" type="text" />
+          </label>
+          <label>
+            <span>Categories</span>
+            <input formControlName="categories" type="text" />
+          </label>
+          <label>
+            <span>Repeat</span>
+            <input formControlName="repeat" type="text" />
+          </label>
+          <label>
+            <span>Currency</span>
+            <input formControlName="currency" type="text" />
+          </label>
+          <label>
+            <span>Last payment</span>
+            <input formControlName="lastPayment" type="date" />
+          </label>
+
+          <button class="btn submit" type="submit" [disabled]="pending()">Save changes</button>
+        </form>
+
+        <form (ngSubmit)="deleteExpense()" class="delete-form">
+          <button class="btn delete" type="submit" [disabled]="deletePending()">Delete expense</button>
+        </form>
+      }
+    </div>
+  </div>
+}

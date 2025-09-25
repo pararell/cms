@@ -1,0 +1,130 @@
+.page-edit {
+  padding: 40px 20px 80px;
+}
+
+.search {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 auto 24px;
+  max-width: 720px;
+}
+
+.search-label {
+  font-weight: 600;
+}
+
+.search input {
+  flex: 1 1 220px;
+  padding: 8px 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.loading {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.editor-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  max-width: 720px;
+  margin: 0 auto 16px;
+}
+
+.editor {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field input,
+.field textarea {
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 10px;
+  font-size: 14px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #f0f0f0;
+}
+
+.btn.primary {
+  background: #111;
+  color: #fff;
+}
+
+.btn.danger {
+  background: #d92b2b;
+  color: #fff;
+}
+
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.delete {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.preview,
+.page-preview {
+  max-width: 720px;
+  margin: 24px auto 0;
+}
+
+.preview-content {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+}
+
+.error {
+  color: #d92b2b;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.success {
+  color: #238636;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.validation {
+  color: #d92b2b;
+  font-size: 12px;
+}

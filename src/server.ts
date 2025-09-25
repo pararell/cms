@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { CustomRequest, setServerBE } from './server-BE';
 import { MODE, ThemeMode } from './app/mode.token';
 import { LANG } from './app/lang.token';
-import { signal } from '@angular/core';
+import { signal, REQUEST } from '@angular/core';
 import { TOKEN } from './app/user.token';
 
 
@@ -65,6 +65,7 @@ app.use((req: CustomRequest, res, next) => {
           { provide: MODE, useValue: signal<ThemeMode>(mode) },
           { provide: LANG, useValue: signal<string>(lang) },
           { provide: TOKEN, useValue: signal<string>(token) },
+          { provide: REQUEST, useValue: req },
         ]
       })
     .then((response) =>
