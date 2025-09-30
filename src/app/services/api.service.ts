@@ -73,7 +73,8 @@ export class Apiservice {
     if (!this.serverRequest?.headers) {
       return null;
     }
-    const cookieHeader = this.serverRequest.headers['cookie'];
+    const cookieHeader = this.serverRequest.headers.get('cookie');
+
     if (Array.isArray(cookieHeader)) {
       return cookieHeader.join(';');
     }
@@ -81,11 +82,11 @@ export class Apiservice {
   }
 
   private buildAuthOptions(): { headers: HttpHeaders; withCredentials: boolean } {
-    let headers = new HttpHeaders();
+    const headerEntries: Record<string, string> = {};
     const tokenValue = this.token();
 
     if (tokenValue) {
-      headers = headers.set('Authorization', `Bearer ${tokenValue}`);
+      headerEntries['Authorization'] = `Bearer ${tokenValue}`;
     }
 
     let langValue = (() => {
@@ -95,18 +96,30 @@ export class Apiservice {
 
     if (isPlatformServer(this.platformId)) {
       const cookieLang = this.readServerCookie('lang');
+      const cookieToken = this.readServerCookie('token');
+      const mode = this.readServerCookie('mode');
+      if (mode) {
+        headerEntries['mode'] = mode;
+      }
+
+      if (cookieToken && cookieToken.trim()) {
+        headerEntries['Authorization'] = `Bearer ${cookieToken.trim()}`;
+      }
+
       if (cookieLang && cookieLang.trim()) {
         langValue = cookieLang.trim();
       }
 
       const cookieHeader = this.getServerCookieHeader();
       if (cookieHeader) {
-        headers = headers.set('x-forwarded-cookie', cookieHeader);
+        headerEntries['x-forwarded-cookie'] = cookieHeader;
       }
     }
 
-    headers = headers.set('Accept', 'application/json').set('accept-language', langValue);
+    headerEntries['Accept'] = 'application/json';
+    headerEntries['accept-language'] = langValue;
 
+    const headers = new HttpHeaders(headerEntries);
     return { headers, withCredentials: true };
   }
 

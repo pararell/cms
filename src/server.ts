@@ -20,7 +20,6 @@ const angularApp = new AngularNodeAppEngine();
 
 setServerBE(app);
 
-
 app.post('/lang-switch', (req: Request, res: Response) => {
   const lang = req.body.lang;
   res.cookie('lang', lang, { path: '/' });
@@ -44,6 +43,17 @@ app.use(
   }),
 );
 
+app.use((req: CustomRequest, res, next) => {
+  if (req.session && typeof req.session.token !== 'string') {
+    const cookieToken = typeof req.cookies?.token === 'string' ? req.cookies.token.trim() : '';
+    if (cookieToken) {
+      req.session.token = cookieToken;
+    }
+  }
+
+  next();
+});
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
@@ -51,12 +61,13 @@ app.use((req: CustomRequest, res, next) => {
   const coerceMode = (value?: string): ThemeMode => (value === 'dark' ? 'dark' : 'light');
   const coerceLang = (value?: string) => (value && value.trim() ? value : 'en');
   const coerceToken = (value?: string) => (value && value.trim() ? value : '');
-
   const mode = coerceMode(req.cookies?.mode);
   const lang = coerceLang(req.cookies?.lang);
   if (req.session?.token) {
     res.cookie('token', req.session.token, { path: '/' });
   }
+
+   console.log('Session token2:', req.session?.token);
   const token = coerceToken(req.cookies?.token ?? req.session?.token);
 
   angularApp
@@ -65,7 +76,7 @@ app.use((req: CustomRequest, res, next) => {
           { provide: MODE, useValue: signal<ThemeMode>(mode) },
           { provide: LANG, useValue: signal<string>(lang) },
           { provide: TOKEN, useValue: signal<string>(token) },
-          { provide: REQUEST, useValue: req },
+         { provide: REQUEST, useValue: req },
         ]
       })
     .then((response) =>

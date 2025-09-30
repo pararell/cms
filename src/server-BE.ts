@@ -27,7 +27,6 @@ const getLang = (req: CustomRequest): 'en' | 'sk' => {
   const cookieLang =
     req.cookies && typeof req.cookies.lang === 'string' ? req.cookies.lang : undefined;
 
-  console.log('Cookie lang:', cookieLang, 'headers', req.headers['accept-language']);
   if (cookieLang && ['en', 'sk'].includes(cookieLang)) {
     return cookieLang as 'en' | 'sk';
   }
@@ -41,28 +40,15 @@ export const setServerBE = (app) => {
   app.set('trust proxy', true);
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
-
-
-  app.use((req, _res, next) => {
-    const headerValue = req.headers['x-forwarded-cookie'];
-    if (headerValue && !req.headers.cookie) {
-      const forwardedCookie = Array.isArray(headerValue) ? headerValue.join('; ') : headerValue;
-      const headers = req.headers as Record<string, unknown>;
-      headers['cookie'] = forwardedCookie;
-    }
-    if (req.headers['x-forwarded-cookie']) {
-      const headers = req.headers as Record<string, unknown>;
-      delete headers['x-forwarded-cookie'];
-    }
-    next();
-  });
-
+  app.use(cookieParser());
 
   app.use(
     session({
       secret: process.env['cookieSecret'],
       resave: false,
       saveUninitialized: true,
+        secure: false,
+        sameSite: 'lax',
       store: sessionStore,
       cookie: { maxAge: 7 * 24 * 60 * 60 * 1000000, httpOnly: false },
     })
@@ -77,8 +63,6 @@ export const setServerBE = (app) => {
 
   app.use(json({ limit: '10mb' }));
   app.use(compression());
-
-  app.use(cookieParser());
 
   // Normalize auth token lookup for both session cookies and Bearer headers (dev server fallback)
   const extractToken = (req: CustomRequest): string | undefined => {
@@ -302,6 +286,7 @@ export const setServerBE = (app) => {
 
   routes.get('/pages/:slug', async (req, res) => {
     const lang = getLang(req);
+
     let { slug } = req.params;
 
     const defaultEmpty = {
@@ -320,7 +305,6 @@ export const setServerBE = (app) => {
         .where({ lang, slug })
         .orWhere({ lang, url: slug })
         .first();
-      console.log(lang, 'ddd')
         if (!page) {
         console.log('Fetched page:', page);
         }

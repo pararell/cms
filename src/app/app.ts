@@ -35,6 +35,8 @@ export class App {
     this.store.getBlogs();
     this.store.getUser();
 
+    console.log('Initial mode:', this.mode());
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
