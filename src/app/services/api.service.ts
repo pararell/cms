@@ -70,15 +70,39 @@ export class Apiservice {
   }
 
   private getServerCookieHeader(): string | null {
-    if (!this.serverRequest?.headers) {
+    const request = this.serverRequest;
+    if (!request) {
       return null;
     }
-    const cookieHeader = this.serverRequest.headers.get('cookie');
 
-    if (Array.isArray(cookieHeader)) {
-      return cookieHeader.join(';');
+    const candidate = (() => {
+      if (typeof request.get === 'function') {
+        return request.get('cookie');
+      }
+
+      const headers = request.headers as
+        | undefined
+        | {
+            get?: (name: string) => unknown;
+            [key: string]: unknown;
+          };
+
+      if (!headers) {
+        return null;
+      }
+
+      if (typeof headers.get === 'function') {
+        return headers.get('cookie');
+      }
+
+      return headers['cookie'] ?? null;
+    })();
+
+    if (Array.isArray(candidate)) {
+      return candidate.join(';');
     }
-    return cookieHeader ?? null;
+
+    return typeof candidate === 'string' ? candidate : null;
   }
 
   private buildAuthOptions(): { headers: HttpHeaders; withCredentials: boolean } {

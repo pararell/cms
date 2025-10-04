@@ -67,7 +67,6 @@ app.use((req: CustomRequest, res, next) => {
     res.cookie('token', req.session.token, { path: '/' });
   }
 
-   console.log('Session token2:', req.session?.token);
   const token = coerceToken(req.cookies?.token ?? req.session?.token);
 
   angularApp
