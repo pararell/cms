@@ -8,8 +8,7 @@ import { LANG } from './lang.token';
 import { PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
-
-
+import { TranslateService } from './services/translate.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +18,7 @@ import { filter } from 'rxjs/operators';
 })
 export class App {
   store = inject(SignalStore);
+  translateService = inject(TranslateService);
   mode = inject(MODE);
   lang = inject(LANG);
   modeVal = signal(this.mode());
@@ -42,7 +42,7 @@ export class App {
       const cookieHeader = this.serverRequest?.headers?.get('cookie');
       if (cookieHeader) {
         const cookies = Object.fromEntries(
-          cookieHeader.split(';').map(c => {
+          cookieHeader.split(';').map((c) => {
             const [k, v] = c.split('=');
             return [k.trim(), decodeURIComponent(v ?? '')];
           })
@@ -52,9 +52,11 @@ export class App {
         }
         if (cookies['lang']) {
           this.langVal.set(cookies['lang']);
+          this.translateService.setLang(cookies['lang']);
         }
       }
-
+    } else {
+       this.translateService.setLang(this.langVal());
     }
 
     this.router.events

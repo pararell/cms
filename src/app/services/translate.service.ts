@@ -10,7 +10,6 @@ export class TranslateService {
   translations: Record<string, string> = {};
 
   constructor(private http: HttpClient) {
-    this.setLang('en');
   }
 
   setLang(lang: string) {
