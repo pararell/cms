@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Signal, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -7,7 +8,7 @@ import { finalize } from 'rxjs/operators';
 import { Apiservice } from '../../services/api.service';
 import { SignalStore } from '../../services/signal-store';
 import { LANG } from '../../lang.token';
-import { prepareSlug } from '../../utils/page-utils';
+import { prepareSlug, PageFormValue } from '../../utils/page-utils';
 import { marked } from 'marked';
 
 @Component({
@@ -43,13 +44,36 @@ export class PageAddComponent {
   readonly pending = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
-  readonly showPreview = signal(false);
+  readonly showPreview = signal(true);
+
+  private readonly formValueChanges = toSignal<PageFormValue>(
+    this.form.valueChanges as unknown as import('rxjs').Observable<PageFormValue>,
+    {
+      initialValue: this.form.getRawValue() as any,
+    }
+  );
+
+  readonly draftValues = computed(() => this.formValueChanges() ?? this.form.getRawValue());
+
+  readonly draftSlug = computed(() => {
+    const { title } = this.draftValues();
+    const candidate = title?.trim() ? prepareSlug(title) : '';
+    return candidate;
+  });
+
+  readonly targetUrl = computed(() => {
+    const slug = this.draftSlug();
+    if (!slug) {
+      return '';
+    }
+    return slug === 'home' ? '/' : `/${slug}`;
+  });
 
   readonly previewContent: Signal<SafeHtml | null> = computed(() => {
     if (!this.showPreview()) {
       return null;
     }
-    const content = this.form.controls.content.value ?? '';
+    const content = this.draftValues().content ?? '';
     return this.sanitizer.bypassSecurityTrustHtml(marked.parse(content) as string);
   });
 

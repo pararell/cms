@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -14,7 +15,8 @@ import { finalize } from 'rxjs/operators';
 import { marked } from 'marked';
 import { Apiservice } from '../../services/api.service';
 import { SignalStore } from '../../services/signal-store';
-import { prepareSlug, mapPageToFormValue, minifyHtml } from '../../utils/page-utils';
+import { prepareSlug, mapPageToFormValue, minifyHtml, PageFormValue } from '../../utils/page-utils';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-page-edit',
@@ -52,16 +54,48 @@ export class PageEditComponent {
   });
 
   private readonly currentId = signal<number | null>(null);
-  private readonly currentSlug = signal<string | null>(null);
+  readonly currentSlug = signal<string | null>(null);
   readonly currentPage = signal<Record<string, unknown> | null>(null);
 
   readonly loading = signal(false);
   readonly pending = signal(false);
   readonly deletePending = signal(false);
+  readonly confirmDelete = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showEditForm = signal(true);
-  readonly showPreview = signal(false);
+  readonly showPreview = signal(true);
+
+  private readonly formValueChanges = toSignal<PageFormValue>(
+    this.form.valueChanges as Observable<PageFormValue>,
+    { initialValue: this.form.getRawValue() as any }
+  );
+
+  readonly hasChanges = computed(() => {
+    const current = this.currentPage();
+    const currentFormValue = this.formValueChanges();
+    if (!current || !currentFormValue) {
+      return false;
+    }
+    const baseline = mapPageToFormValue(current);
+    return Object.entries(baseline).some(([key, value]) => {
+      const candidate = currentFormValue[key as keyof PageFormValue] ?? '';
+      return candidate !== value;
+    });
+  });
+
+  readonly viewUrl = computed(() => {
+    const page = this.currentPage();
+    const url = String(page?.['url'] ?? '').trim();
+    if (url) {
+      return url.startsWith('/') ? url : `/${url}`;
+    }
+    const slug = this.currentSlug();
+    if (!slug || slug === 'home') {
+      return '/';
+    }
+    return `/${slug}`;
+  });
 
   readonly currentPageHtml: Signal<SafeHtml | null> = computed(() => {
     const page = this.currentPage();
@@ -97,6 +131,20 @@ export class PageEditComponent {
     this.showPreview.update((state) => !state);
   }
 
+  startDelete() {
+    if (this.deletePending()) {
+      return;
+    }
+    this.confirmDelete.set(true);
+  }
+
+  cancelDelete() {
+    if (this.deletePending()) {
+      return;
+    }
+    this.confirmDelete.set(false);
+  }
+
   onSearch() {
     const value = this.searchForm.controls.edit.value?.trim();
     const slug = value || 'home';
@@ -129,9 +177,12 @@ export class PageEditComponent {
         this.currentPage.set(response);
         const formValue = mapPageToFormValue(response ?? {});
         this.form.patchValue(formValue);
+        this.form.markAsPristine();
+        this.form.markAsUntouched();
         this.currentId.set(Number(response?.id ?? null));
         this.currentSlug.set(String(response?.slug ?? nextSlug));
         this.successMessage.set(null);
+        this.confirmDelete.set(false);
       });
   }
 
@@ -175,6 +226,7 @@ export class PageEditComponent {
         this.currentPage.set(response);
         const formValue = mapPageToFormValue(response ?? {});
         this.form.patchValue(formValue);
+        this.form.markAsPristine();
         this.currentId.set(Number(response?.id ?? id));
         this.currentSlug.set(String(response?.slug ?? payload.title));
         this.store.getPages();
@@ -199,13 +251,16 @@ export class PageEditComponent {
       .subscribe((response: any) => {
         if (response?.error) {
           this.errorMessage.set('Unable to delete page.');
+          this.confirmDelete.set(false);
           return;
         }
         if (response?.message) {
           this.errorMessage.set(String(response.message));
+          this.confirmDelete.set(false);
           return;
         }
         this.store.getPages();
+        this.confirmDelete.set(false);
         this.router.navigateByUrl('/');
       });
   }

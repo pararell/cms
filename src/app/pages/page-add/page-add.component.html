@@ -1,73 +1,107 @@
 <section class="page-add">
   <ng-container *ngIf="user()?.isAdmin; else noAccess">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
-      <div class="field">
-        <label for="title">Title *</label>
-        <input id="title" type="text" formControlName="title" placeholder="Title" />
-        <p class="validation" *ngIf="form.controls.title.invalid && form.controls.title.touched">
-          Title is required.
-        </p>
+    <header class="page-header">
+      <div>
+        <h1>Create a new page</h1>
+        <p>Fill in the content and see the markdown preview update instantly.</p>
       </div>
-
-      <div class="field">
-        <label for="metaTitle">Meta title</label>
-        <input id="metaTitle" type="text" formControlName="metaTitle" placeholder="Meta title" />
+      <div class="page-status">
+        <div>
+          <p class="status-label">Slug</p>
+          <p class="status-value">{{ draftSlug() || '—' }}</p>
+        </div>
+        <div>
+          <p class="status-label">Target URL</p>
+          <p class="status-value">{{ targetUrl() || '—' }}</p>
+        </div>
       </div>
+    </header>
 
-      <div class="field">
-        <label for="image">Image</label>
-        <input id="image" type="text" formControlName="image" placeholder="Image URL" />
-      </div>
+    <div class="page-layout">
+      <section class="editor">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="title">Title *</label>
+              <input id="title" type="text" formControlName="title" placeholder="Title" />
+              <p class="validation" *ngIf="form.controls.title.invalid && form.controls.title.touched">
+                Title is required.
+              </p>
+            </div>
 
-      <div class="field">
-        <label for="description">Description</label>
-        <input id="description" type="text" formControlName="description" placeholder="Description" />
-      </div>
+            <div class="field">
+              <label for="metaTitle">Meta title</label>
+              <input id="metaTitle" type="text" formControlName="metaTitle" placeholder="Meta title" />
+            </div>
 
-      <div class="field">
-        <label for="url">URL</label>
-        <input id="url" type="text" formControlName="url" placeholder="url" />
-      </div>
+            <div class="field">
+              <label for="image">Image</label>
+              <input id="image" type="text" formControlName="image" placeholder="Image URL" />
+            </div>
 
-      <div class="field">
-        <label for="position">Position</label>
-        <input id="position" type="number" formControlName="position" placeholder="Position" />
-      </div>
+            <div class="field">
+              <label for="description">Description</label>
+              <input id="description" type="text" formControlName="description" placeholder="Description" />
+            </div>
 
-      <div class="field">
-        <label for="hidden">Hidden</label>
-        <input id="hidden" type="text" formControlName="hidden" placeholder="false" />
-      </div>
+            <div class="field">
+              <label for="url">URL override</label>
+              <input id="url" type="text" formControlName="url" placeholder="/custom-url" />
+            </div>
 
-      <div class="field">
-        <label for="onlyHTML">Only HTML</label>
-        <input id="onlyHTML" type="text" formControlName="onlyHTML" placeholder="false" />
-      </div>
+            <div class="field">
+              <label for="position">Position</label>
+              <input id="position" type="number" formControlName="position" placeholder="Position" />
+            </div>
 
-      <div class="field">
-        <label for="content">Content *</label>
-        <textarea id="content" rows="12" formControlName="content" placeholder="# Heading"></textarea>
-        <p class="validation" *ngIf="form.controls.content.invalid && form.controls.content.touched">
-          Content is required.
-        </p>
-      </div>
+            <div class="field">
+              <label for="hidden">Hidden</label>
+              <input id="hidden" type="text" formControlName="hidden" placeholder="false" />
+            </div>
 
-      <div class="actions">
-        <button type="button" class="btn" (click)="togglePreview()">
-          {{ showPreview() ? 'Hide preview' : 'Show preview' }}
-        </button>
-        <button type="submit" class="btn primary" [disabled]="pending()">
-          {{ pending() ? 'Saving…' : 'Save page' }}
-        </button>
-      </div>
+            <div class="field">
+              <label for="onlyHTML">Only HTML</label>
+              <input id="onlyHTML" type="text" formControlName="onlyHTML" placeholder="false" />
+            </div>
+          </div>
 
-      <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-      <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
-    </form>
+          <div class="field">
+            <label for="content">Content *</label>
+            <textarea id="content" rows="16" formControlName="content" placeholder="# Heading"></textarea>
+            <p class="validation" *ngIf="form.controls.content.invalid && form.controls.content.touched">
+              Content is required.
+            </p>
+            <p class="helper">Supports markdown or HTML. Use the preview to verify layout.</p>
+          </div>
 
-    <div class="preview" *ngIf="previewContent() as html">
-      <h2>Preview</h2>
-      <div class="preview-content" [innerHTML]="html"></div>
+          <div class="editor-actions">
+            <button type="button" class="btn" (click)="togglePreview()">
+              {{ showPreview() ? 'Hide preview' : 'Show preview' }}
+            </button>
+            <button type="submit" class="btn primary" [disabled]="pending()">
+              {{ pending() ? 'Saving…' : 'Save page' }}
+            </button>
+          </div>
+
+          <div class="feedback">
+            <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+            <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
+          </div>
+        </form>
+      </section>
+
+      <aside class="preview-column">
+        <div class="preview" *ngIf="showPreview() && previewContent() as html; else previewPlaceholder">
+          <h2>Live preview</h2>
+          <div class="preview-content" [innerHTML]="html"></div>
+        </div>
+        <ng-template #previewPlaceholder>
+          <div class="preview placeholder">
+            <h2>Preview hidden</h2>
+            <p>Enable preview to see how the page will render.</p>
+          </div>
+        </ng-template>
+      </aside>
     </div>
   </ng-container>
 

@@ -1,111 +1,164 @@
 <section class="page-edit">
   <ng-container *ngIf="user()?.isAdmin; else noAccess">
-    <form class="search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
-      <label for="pageSearch" class="search-label">Search pages</label>
-      <input
-        id="pageSearch"
-        type="search"
-        formControlName="edit"
-        placeholder="home"
-        list="pagesList"
-        autocomplete="off"
-      />
-      <datalist id="pagesList">
-        <option *ngFor="let page of pages()" [value]="page['slug']"></option>
-      </datalist>
-      <button class="btn" type="submit">Search</button>
-    </form>
+    <header class="page-header">
+      <div>
+        <h1>Edit pages</h1>
+        <p>Search for a page by slug, update the content, and preview your changes live.</p>
+      </div>
+      <form class="search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+        <label for="pageSearch" class="search-label">Page slug</label>
+        <input
+          id="pageSearch"
+          type="search"
+          formControlName="edit"
+          placeholder="home"
+          list="pagesList"
+          autocomplete="off"
+        />
+        <datalist id="pagesList">
+          <option *ngFor="let page of pages()" [value]="page['slug']"></option>
+        </datalist>
+        <button class="btn" type="submit">Load page</button>
+      </form>
+    </header>
+
+    <div class="status-bar" *ngIf="currentSlug() || hasChanges()">
+      <span *ngIf="currentSlug()">Editing <strong>{{ currentSlug() }}</strong></span>
+      <span *ngIf="hasChanges()" class="badge">Unsaved changes</span>
+      <a
+        *ngIf="currentSlug()"
+        class="status-link"
+        [attr.href]="viewUrl()"
+        target="_blank"
+        rel="noopener"
+      >
+        Open live page
+      </a>
+    </div>
 
     <p class="loading" *ngIf="loading()">Loading page…</p>
 
-    <div class="page-preview" *ngIf="currentPageHtml() as html">
-      <h2>Current content</h2>
-      <div class="preview-content" [innerHTML]="html"></div>
+    <div class="page-layout">
+      <section class="editor" [class.collapsed]="!showEditForm()">
+        <div class="editor-header">
+          <div>
+            <h2>Content editor</h2>
+            <p *ngIf="currentSlug()">Slug: <strong>{{ currentSlug() }}</strong></p>
+          </div>
+          <div class="editor-header__actions">
+            <button class="btn" type="button" (click)="toggleEditForm()">
+              {{ showEditForm() ? 'Collapse editor' : 'Expand editor' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-body" *ngIf="showEditForm()">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="title">Title *</label>
+                <input id="title" type="text" formControlName="title" />
+                <p class="validation" *ngIf="form.controls.title.invalid && form.controls.title.touched">
+                  Title is required.
+                </p>
+              </div>
+
+              <div class="field">
+                <label for="metaTitle">Meta title</label>
+                <input id="metaTitle" type="text" formControlName="metaTitle" />
+              </div>
+
+              <div class="field">
+                <label for="image">Image</label>
+                <input id="image" type="text" formControlName="image" />
+              </div>
+
+              <div class="field">
+                <label for="description">Description</label>
+                <input id="description" type="text" formControlName="description" />
+              </div>
+
+              <div class="field">
+                <label for="url">URL</label>
+                <input id="url" type="text" formControlName="url" />
+              </div>
+
+              <div class="field">
+                <label for="position">Position</label>
+                <input id="position" type="number" formControlName="position" />
+              </div>
+
+              <div class="field">
+                <label for="hidden">Hidden</label>
+                <input id="hidden" type="text" formControlName="hidden" />
+              </div>
+
+              <div class="field">
+                <label for="onlyHTML">Only HTML</label>
+                <input id="onlyHTML" type="text" formControlName="onlyHTML" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="content">Content *</label>
+              <textarea id="content" rows="16" formControlName="content"></textarea>
+              <p class="validation" *ngIf="form.controls.content.invalid && form.controls.content.touched">
+                Content is required.
+              </p>
+            </div>
+
+            <div class="editor-actions">
+              <button class="btn" type="button" (click)="togglePreview()">
+                {{ showPreview() ? 'Hide draft preview' : 'Show draft preview' }}
+              </button>
+              <button type="submit" class="btn primary" [disabled]="pending()">
+                {{ pending() ? 'Saving…' : 'Save changes' }}
+              </button>
+            </div>
+          </form>
+
+          <div class="danger-zone">
+            <p class="danger-title">Danger zone</p>
+            <div class="danger-actions" *ngIf="!confirmDelete(); else confirmDeleteBlock">
+              <button type="button" class="btn danger-outline" (click)="startDelete()">Delete page</button>
+            </div>
+            <ng-template #confirmDeleteBlock>
+              <div class="danger-actions">
+                <span>Delete this page permanently?</span>
+                <button
+                  type="button"
+                  class="btn danger"
+                  (click)="deletePage()"
+                  [disabled]="deletePending()"
+                >
+                  {{ deletePending() ? 'Deleting…' : 'Yes, delete' }}
+                </button>
+                <button type="button" class="btn" (click)="cancelDelete()" [disabled]="deletePending()">
+                  Cancel
+                </button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </section>
+
+      <aside class="preview-column">
+        <div class="page-preview" *ngIf="currentPageHtml() as html">
+          <h2>Published content</h2>
+          <div class="preview-content" [innerHTML]="html"></div>
+        </div>
+
+        <div class="preview" *ngIf="previewContent() as preview">
+          <h2>Draft preview</h2>
+          <div class="preview-content" [innerHTML]="preview"></div>
+        </div>
+      </aside>
     </div>
 
-    <div class="editor-controls">
-      <button class="btn" type="button" (click)="toggleEditForm()">
-        {{ showEditForm() ? 'Hide editor' : 'Show editor' }}
-      </button>
-      <button class="btn" type="button" (click)="togglePreview()">
-        {{ showPreview() ? 'Hide draft preview' : 'Show draft preview' }}
-      </button>
+    <div class="feedback">
+      <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+      <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
     </div>
-
-    <section class="editor" *ngIf="showEditForm()">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
-        <div class="field">
-          <label for="title">Title *</label>
-          <input id="title" type="text" formControlName="title" />
-          <p class="validation" *ngIf="form.controls.title.invalid && form.controls.title.touched">
-            Title is required.
-          </p>
-        </div>
-
-        <div class="field">
-          <label for="metaTitle">Meta title</label>
-          <input id="metaTitle" type="text" formControlName="metaTitle" />
-        </div>
-
-        <div class="field">
-          <label for="image">Image</label>
-          <input id="image" type="text" formControlName="image" />
-        </div>
-
-        <div class="field">
-          <label for="description">Description</label>
-          <input id="description" type="text" formControlName="description" />
-        </div>
-
-        <div class="field">
-          <label for="url">URL</label>
-          <input id="url" type="text" formControlName="url" />
-        </div>
-
-        <div class="field">
-          <label for="position">Position</label>
-          <input id="position" type="number" formControlName="position" />
-        </div>
-
-        <div class="field">
-          <label for="hidden">Hidden</label>
-          <input id="hidden" type="text" formControlName="hidden" />
-        </div>
-
-        <div class="field">
-          <label for="onlyHTML">Only HTML</label>
-          <input id="onlyHTML" type="text" formControlName="onlyHTML" />
-        </div>
-
-        <div class="field">
-          <label for="content">Content *</label>
-          <textarea id="content" rows="12" formControlName="content"></textarea>
-          <p class="validation" *ngIf="form.controls.content.invalid && form.controls.content.touched">
-            Content is required.
-          </p>
-        </div>
-
-        <div class="actions">
-          <button type="submit" class="btn primary" [disabled]="pending()">
-            {{ pending() ? 'Saving…' : 'Save changes' }}
-          </button>
-        </div>
-      </form>
-
-      <form class="delete" (ngSubmit)="deletePage()">
-        <button type="submit" class="btn danger" [disabled]="deletePending()">
-          {{ deletePending() ? 'Deleting…' : 'Delete page' }}
-        </button>
-      </form>
-    </section>
-
-    <div class="preview" *ngIf="previewContent() as preview">
-      <h2>Draft preview</h2>
-      <div class="preview-content" [innerHTML]="preview"></div>
-    </div>
-
-    <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-    <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
   </ng-container>
 
   <ng-template #noAccess>
