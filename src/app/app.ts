@@ -1,4 +1,4 @@
-import { Component, effect, inject, REQUEST, signal } from '@angular/core';
+import { Component, computed, effect, inject, REQUEST, signal } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { DOCUMENT, isPlatformBrowser, JsonPipe } from '@angular/common';
 import { Header } from './components/header/header';
@@ -23,6 +23,7 @@ export class App {
   lang = inject(LANG);
   modeVal = signal(this.mode());
   langVal = signal(this.lang());
+  readonly currentYear = new Date().getFullYear();
   private platformId = inject(PLATFORM_ID);
   private document = inject(DOCUMENT);
   private router = inject(Router);
@@ -32,6 +33,18 @@ export class App {
   blogs = this.store.blogs;
   user = this.store.user;
   currentUrl = signal(this.router.url);
+  readonly footerPages = computed(() => {
+    return (this.pages() ?? [])
+      .filter((page) => {
+        const url = String(page?.url ?? '').trim();
+        const isHidden = String(page?.hidden ?? '').toLowerCase() === 'true';
+        if (!url || url === '/' || isHidden) {
+          return false;
+        }
+        return !url.includes('/') || url.split('/').length === 1;
+      })
+      .slice(0, 5);
+  });
 
   constructor() {
     this.store.getPages();

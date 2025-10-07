@@ -1,16 +1,69 @@
 <app-header
   [pages]="pages()"
   [blogs]="blogs()"
-  [mode]="mode()"
+  [mode]="modeVal()"
   [user]="user()"
-  [activeLang]="lang()"
+  [activeLang]="langVal()"
   [activeUrl]="currentUrl()"
 >
 </app-header>
-<main id="main">
-<router-outlet />
+
+<main class="site-main">
+  <div class="site-main__container">
+    <router-outlet />
+  </div>
 </main>
 
-<footer>
-	<p></p>
+<footer class="site-footer">
+  <div class="site-footer__container">
+    <div class="site-footer__brand">
+      <a class="site-footer__logo" href="/">CMS</a>
+      <p>Build and manage your content with a clean, responsive workspace.</p>
+      @if (user()?.email) {
+        <a class="site-footer__contact" [href]="'mailto:' + user()?.email">Contact {{ user()?.email }}</a>
+      }
+    </div>
+
+    <div class="site-footer__columns">
+      <div class="footer-column">
+        <p class="footer-heading">Pages</p>
+        <ul>
+          <li><a href="/" [attr.aria-current]="currentUrl() === '/' ? 'page' : null">Home</a></li>
+          @for (page of footerPages(); track page['id'] || page['url']) {
+            @let targetUrl = typeof page.url === 'string' && page.url.startsWith('/') ? page.url : '/' + page.url;
+            <li>
+              <a
+                [href]="targetUrl"
+                [attr.aria-current]="currentUrl() === targetUrl ? 'page' : null"
+              >
+                {{ page['title'] || page['url'] }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <p class="footer-heading">Resources</p>
+        <ul>
+          @if (blogs()?.length) {
+            <li><a href="/blogs">Blog</a></li>
+          }
+          @if (user()?.email) {
+            <li><a href="/expenses">Expenses</a></li>
+            <li><a href="/notes">Notes</a></li>
+          }
+          @if (user()?.isAdmin) {
+            <li><a href="/add">Add page</a></li>
+            <li><a href="/edit">Edit page</a></li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="site-footer__bottom">
+    <p>© {{ currentYear }} CMS. All rights reserved.</p>
+    <p class="site-footer__note">Crafted for fast content iterations.</p>
+  </div>
 </footer>

@@ -1,68 +1,78 @@
-<header id="header" role="banner" [ngClass]="active()">
-  <div class="container">
-    <div class="header-menu">
-      <a href="/" class="logo">{{ headerLogo }}</a>
+<header class="site-header" role="banner" [class.menu-open]="menuOpen()">
+  <div class="site-header__container" (click)="onNavClick($event)">
+    <div class="site-header__brand">
+      <a href="/" class="brand-logo" aria-label="Homepage">
+        {{ headerLogo || 'MS' }}
+      </a>
+    </div>
+
+    <nav class="site-header__quick" aria-label="Primary">
+      <a
+        class="quick-link"
+        [class.active]="activeUrl === '/'"
+        [attr.aria-current]="activeUrl === '/' ? 'page' : null"
+        href="/"
+      >
+        {{ 'home' | translate }}
+      </a>
 
       @if (blogs()?.length) {
         <a
-          class="menu-link"
+          class="quick-link"
           [class.active]="activeUrl === '/blogs'"
           [attr.aria-current]="activeUrl === '/blogs' ? 'page' : null"
           href="/blogs"
-          >Blog</a
         >
+          Blog
+        </a>
       }
 
       @if (user?.email) {
         <a
-          class="menu-link"
+          class="quick-link"
           [class.active]="activeUrl === '/expenses'"
           [attr.aria-current]="activeUrl === '/expenses' ? 'page' : null"
           href="/expenses"
-          >Expenses</a
         >
+          Expenses
+        </a>
         <a
-          class="menu-link"
+          class="quick-link"
           [class.active]="activeUrl === '/notes'"
           [attr.aria-current]="activeUrl === '/notes' ? 'page' : null"
           href="/notes"
-          >Notes</a
         >
+          Notes
+        </a>
       }
 
       @for (pageToShow of pagesInMenu(); track pageToShow.id) {
         @if (pageToShow.url !== '/' && !pageToShow.subpage) {
           <a
+            class="quick-link"
+            [class.active]="activeUrl.includes(pageToShow.url.toLowerCase())"
+            [attr.aria-current]="activeUrl.includes(pageToShow.url.toLowerCase()) ? 'page' : null"
             [attr.rel]="pageToShow.description === 'reload' ? 'external' : null"
-            class="menu-link"
-            [class.active]="activeUrl === pageToShow.url"
-            [attr.aria-current]="activeUrl === pageToShow.url ? 'page' : null"
             [href]="'/' + pageToShow.url"
-            >{{ pageToShow.title }}</a
           >
+            {{ pageToShow.title }}
+          </a>
         }
       }
+    </nav>
 
-      <div class="menu-links">
-        <button
-          type="button"
-          class="hamburger menu-toggle"
-          aria-controls="site-nav"
-          aria-label="Toggle navigation menu"
-          [attr.aria-expanded]="menuOpen()"
-          (click)="toggleMenu()"
-        >
-          <span class="hamburger-box" aria-hidden="true">
-            <span class="hamburger-inner"></span>
-          </span>
-          <span class="hamburger-label">Menu</span>
-        </button>
-      </div>
+    <div class="site-header__actions">
+      @if (user?.email) {
+        <span class="user-chip" title="Signed in as {{ user?.email }}">
+          {{ (user?.name || user?.email || '?').charAt(0) | uppercase }}
+        </span>
+      }
 
-      <form class="light-switcher" method="post" action="/mode-switch">
+      <form class="action-form light-switcher" method="post" action="/mode-switch">
         <input type="hidden" name="mode" [value]="mode" />
         <button
           type="submit"
+          class="icon-button"
           [attr.aria-label]="mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
           title="Switch theme"
         >
@@ -72,131 +82,163 @@
           </svg>
         </button>
       </form>
+
+      <form class="action-form lang-switcher" method="POST" action="/lang-switch">
+        <label class="sr-only" for="langSelect">Change language</label>
+        <select id="langSelect" name="lang" [value]="activeLang">
+          @for (language of locales; track $index) {
+            <option [value]="language" [selected]="language === activeLang">{{ language }}</option>
+          }
+        </select>
+        <button type="submit" class="icon-button" aria-label="Apply language">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="m12.05 19 2.85-2.825-2.85-2.825L11 14.4l1.075 1.075q-.7.025-1.362-.225-.663-.25-1.188-.775-.5-.5-.763-1.15-.262-.65-.262-1.3 0-.425.113-.85.112-.425.312-.825l-1.1-1.1q-.425.625-.625 1.325T7 12q0 .95.375 1.875t1.1 1.65q.725.725 1.625 1.088.9.362 1.85.387l-.95.95Zm4.125-4.25q.425-.625.625-1.325T17 12q0-.95-.362-1.888-.363-.937-1.088-1.662-.725-.725-1.637-1.075-.913-.35-1.863-.35L13 6.05 11.95 5 9.1 7.825l2.85 2.825L13 9.6l-1.1-1.1q.675 0 1.375.262.7.263 1.2.763t.763 1.15q.262.65.262 1.3 0 .425-.113.85-.112.425-.312.825ZM12 22q-2.075 0-3.9-.788-1.825-.787-3.175-2.137-1.35-1.35-2.137-3.175Q2 14.075 2 12t.788-3.9q.787-1.825 2.137-3.175 1.35-1.35 3.175-2.138Q9.925 2 12 2t3.9.787q1.825.788 3.175 2.138 1.35 1.35 2.137 3.175Q22 9.925 22 12t-.788 3.9q-.787 1.825-2.137 3.175-1.35 1.35-3.175 2.137Q14.075 22 12 22Zm0-2q3.35 0 5.675-2.325Q20 15.35 20 12q0-3.35-2.325-5.675Q15.35 4 12 4 8.65 4 6.325 6.325 4 8.65 4 12q0 3.35 2.325 5.675Q8.65 20 12 20Zm0-8Z" />
+          </svg>
+        </button>
+      </form>
+
+      <button
+        type="button"
+        class="nav-toggle"
+        aria-controls="site-nav"
+        aria-label="Toggle navigation menu"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="toggleMenu()"
+      >
+        <span class="nav-toggle__box" aria-hidden="true">
+          <span class="nav-toggle__inner"></span>
+        </span>
+        <span class="nav-toggle__label">Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="site-header__overlay" *ngIf="menuOpen()" (click)="toggleMenu(false)"></div>
+
+  <nav
+    id="site-nav"
+    class="site-drawer"
+    role="navigation"
+    aria-label="Primary"
+    [class.open]="menuOpen()"
+    (click)="onNavClick($event)"
+  >
+    <div class="drawer__head">
+      <p>Navigation</p>
+      <button type="button" class="icon-button" aria-label="Close menu" (click)="toggleMenu(false)">
+        ✕
+      </button>
     </div>
 
-    <nav
-      id="site-nav"
-      role="navigation"
-      aria-label="Primary"
-      [ngClass]="active()"
-      (click)="onNavClick($event)"
-    >
-      <div class="col">
-        <h4>MS</h4>
+    <div class="drawer__sections">
+      <section class="drawer__section">
+        <h3>Pages</h3>
         <ul>
           <li [class.active]="activeUrl === '/'">
-            <a href="/" [attr.aria-current]="activeUrl === '/' ? 'page' : null"
-              >{{ 'home' | translate }}</a
-            >
+            <a href="/" [attr.aria-current]="activeUrl === '/' ? 'page' : null">{{ 'home' | translate }}</a>
           </li>
-
-          @if (blogs()?.length) {
-            <li [class.active]="activeUrl === '/blogs'">
-              <a href="/blogs" [attr.aria-current]="activeUrl === '/blogs' ? 'page' : null">Blog</a>
-            </li>
-          }
 
           @for (pageToShow of pagesInMenu(); track pageToShow.id) {
             @if (pageToShow.url !== '/') {
               <li [class.active]="activeUrl === pageToShow.url">
                 <a
-                  [attr.rel]="pageToShow.description === 'reload' ? 'external' : null"
-                  [attr.aria-current]="activeUrl === pageToShow.url ? 'page' : null"
                   [href]="'/' + pageToShow.url"
-                  >{{ pageToShow.title }}</a
+                  [attr.aria-current]="activeUrl === pageToShow.url ? 'page' : null"
+                  [attr.rel]="pageToShow.description === 'reload' ? 'external' : null"
                 >
+                  {{ pageToShow.title }}
+                </a>
+
                 @if (pageToShow.subPages?.length) {
-                  @for (subpageToShow of pageToShow.subPages; track subpageToShow.id) {
-                    <span [class.active]="activeUrl === subpageToShow.url">
-                      <a
-                        [href]="'/' + subpageToShow.url"
-                        [attr.aria-current]="activeUrl === subpageToShow.url ? 'page' : null"
-                        >{{ subpageToShow.title }}</a
-                      >
-                    </span>
-                  }
+                  <ul class="drawer__sublist">
+                    @for (subpageToShow of pageToShow.subPages; track subpageToShow.id) {
+                      <li [class.active]="activeUrl === subpageToShow.url">
+                        <a
+                          [href]="'/' + subpageToShow.url"
+                          [attr.aria-current]="activeUrl === subpageToShow.url ? 'page' : null"
+                        >
+                          {{ subpageToShow.title }}
+                        </a>
+                      </li>
+                    }
+                  </ul>
                 }
               </li>
             }
           }
+        </ul>
+      </section>
 
-          @if (user?.email) {
+      @if (blogs()?.length) {
+        <section class="drawer__section">
+          <h3>Blog</h3>
+          <ul>
+            <li [class.active]="activeUrl === '/blogs'">
+              <a href="/blogs" [attr.aria-current]="activeUrl === '/blogs' ? 'page' : null">All posts</a>
+            </li>
+            @for (blog of blogs().slice(0, 3); track $index) {
+              <li>
+                <a [href]="'/blogs/' + blog.slug">{{ blog.title }}</a>
+              </li>
+            }
+            @if (user?.isAdmin) {
+              <li><a href="/blogs/add">Add blog</a></li>
+              <li><a href="/blogs/edit">Edit blog</a></li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (categories().length) {
+        <section class="drawer__section">
+          <h3>{{ 'categories' | translate }}</h3>
+          <ul class="drawer__tags">
+            @for (category of categories(); track $index) {
+              <li><a [href]="'/blogs/category/' + category">{{ category }}</a></li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (user?.email) {
+        <section class="drawer__section">
+          <h3>Dashboard</h3>
+          <ul>
             <li>
               <a
                 [class.active]="activeUrl === '/expenses'"
                 [attr.aria-current]="activeUrl === '/expenses' ? 'page' : null"
                 href="/expenses"
-                >Expenses</a
               >
+                Expenses
+              </a>
             </li>
             <li>
               <a
                 [class.active]="activeUrl === '/notes'"
                 [attr.aria-current]="activeUrl === '/notes' ? 'page' : null"
                 href="/notes"
-                >Notes</a
               >
+                Notes
+              </a>
             </li>
-          }
+          </ul>
 
-          @if (user?.isAdmin) {
-            <br />
-            <li><a href="/add">Add page</a></li>
-            <li><a href="/edit">Edit page</a></li>
-          }
-        </ul>
-
-        @if (user?.email) {
           <form class="logout" method="POST" action="/auth/login?/logout">
             <button type="submit" aria-label="Logout">Logout</button>
           </form>
-        }
-      </div>
-
-      @if (blogs()?.length) {
-        <div class="col">
-          <h4>Blog</h4>
-          <ul>
-              @for (blog of blogs().slice(0, 3); track $index) {
-                <li>
-                  <a [href]="'/blogs/' + blog.slug">{{ blog.title }}</a>
-                </li>
-              }
-            @if (user?.isAdmin) {
-              <li><a href="/blogs/add">Add blog</a></li>
-              <li><a href="/blogs/edit">Edit blog</a></li>
-            }
-          </ul>
-        </div>
+        </section>
       }
 
-      @if (categories().length) {
-        <div class="col">
-          <h4>{{ 'categories' | translate }}</h4>
+      @if (user?.isAdmin) {
+        <section class="drawer__section">
+          <h3>Admin</h3>
           <ul>
-            @for (category of categories(); track $index) {
-              <li><a [href]="'/blogs/category/' + category">{{ category }}</a></li>
-            }
+            <li><a href="/add">Add page</a></li>
+            <li><a href="/edit">Edit page</a></li>
           </ul>
-        </div>
+        </section>
       }
-
-      <div class="col">
-        <div class="switcher">
-          <form method="POST" action="/lang-switch">
-            <select name="lang" [value]="activeLang">
-              @for (language of locales; track $index;) {
-                <option [value]="language" [selected]="language === activeLang">{{ language }}</option>
-              }
-            </select>
-            <button type="submit" aria-label="LangSwitch">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
-                <path d="m12.05 19 2.85-2.825-2.85-2.825L11 14.4l1.075 1.075q-.7.025-1.362-.225-.663-.25-1.188-.775-.5-.5-.763-1.15-.262-.65-.262-1.3 0-.425.113-.85.112-.425.312-.825l-1.1-1.1q-.425.625-.625 1.325T7 12q0 .95.375 1.875t1.1 1.65q.725.725 1.625 1.088.9.362 1.85.387l-.95.95Zm4.125-4.25q.425-.625.625-1.325T17 12q0-.95-.362-1.888-.363-.937-1.088-1.662-.725-.725-1.637-1.075-.913-.35-1.863-.35L13 6.05 11.95 5 9.1 7.825l2.85 2.825L13 9.6l-1.1-1.1q.675 0 1.375.262.7.263 1.2.763t.763 1.15q.262.65.262 1.3 0 .425-.113.85-.112.425-.312.825ZM12 22q-2.075 0-3.9-.788-1.825-.787-3.175-2.137-1.35-1.35-2.137-3.175Q2 14.075 2 12t.788-3.9q.787-1.825 2.137-3.175 1.35-1.35 3.175-2.138Q9.925 2 12 2t3.9.787q1.825.788 3.175 2.138 1.35 1.35 2.137 3.175Q22 9.925 22 12t-.788 3.9q-.787 1.825-2.137 3.175-1.35 1.35-3.175 2.137Q14.075 22 12 22Zm0-2q3.35 0 5.675-2.325Q20 15.35 20 12q0-3.35-2.325-5.675Q15.35 4 12 4 8.65 4 6.325 6.325 4 8.65 4 12q0 3.35 2.325 5.675Q8.65 20 12 20Zm0-8Z" />
-              </svg>
-            </button>
-          </form>
-        </div>
-      </div>
-    </nav>
-  </div>
+    </div>
+  </nav>
 </header>
