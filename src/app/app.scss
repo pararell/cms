@@ -13,8 +13,9 @@
 }
 
 .site-main__container {
-  width: min(1200px, 92vw);
+  width: min(1200px, 100%);
   margin: 0 auto;
+  padding: 0 24px;
 }
 
 .site-footer {
@@ -31,8 +32,9 @@
 }
 
 .site-footer__container {
-  width: min(1200px, 92vw);
+  width: min(1200px, 100%);
   margin: 0 auto;
+  padding: 0 24px;
   display: grid;
   gap: 32px;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
@@ -89,8 +91,9 @@
 }
 
 .site-footer__bottom {
-  width: min(1200px, 92vw);
+  width: min(1200px, 100%);
   margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -106,6 +109,12 @@
 @media (max-width: 768px) {
   .site-main {
     padding: 32px 0 48px;
+  }
+
+  .site-main__container,
+  .site-footer__container,
+  .site-footer__bottom {
+    padding: 0 16px;
   }
 
   .site-footer__container {
